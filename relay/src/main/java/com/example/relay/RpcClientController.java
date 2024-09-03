@@ -7,8 +7,6 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
-import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,13 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class RpcClientController {
 
   private final RabbitTemplate rabbitTemplate;
-  private final AsyncRabbitTemplate asyncRabbitTemplate;
 
   @Autowired
   public RpcClientController(
-      RabbitTemplate rabbitTemplate, AsyncRabbitTemplate asyncRabbitTemplate) {
+      RabbitTemplate rabbitTemplate) {
     this.rabbitTemplate = rabbitTemplate;
-    this.asyncRabbitTemplate = asyncRabbitTemplate;
   }
 
   @GetMapping("/send")
@@ -70,7 +66,6 @@ public class RpcClientController {
     messageProperties.setReplyTo(Constant.REPLIES_QUEUE_NAME);
     String correctionId = UUID.randomUUID().toString();
     messageProperties.setCorrelationId(correctionId);
-    Message newMessage = new Message(message.getBytes(StandardCharsets.UTF_8), messageProperties);
-    return newMessage;
+    return new Message(message.getBytes(StandardCharsets.UTF_8), messageProperties);
   }
 }
