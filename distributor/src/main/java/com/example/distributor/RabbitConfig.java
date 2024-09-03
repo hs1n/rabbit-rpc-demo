@@ -1,10 +1,7 @@
 package com.example.distributor;
 
 import com.example.Constant;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.core.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,8 +22,13 @@ public class RabbitConfig {
 
   /** 设置交换机 */
   @Bean
-  TopicExchange exchange() {
-    return new TopicExchange(Constant.EXCHANGE_NAME);
+  DirectExchange exchange() {
+    return new DirectExchange(Constant.EXCHANGE_NAME);
+  }
+
+  @Bean
+  FanoutExchange fanoutExchange() {
+    return new FanoutExchange(Constant.FAN_OUT_EXCHANGE);
   }
 
   /** 请求队列和交换器绑定 */
@@ -37,7 +39,9 @@ public class RabbitConfig {
 
   /** 返回队列和交换器绑定 */
   @Bean
-  Binding repliesBinding() {
-    return BindingBuilder.bind(repliesQueue()).to(exchange()).with(Constant.REPLIES_QUEUE_NAME);
+Binding repliesBinding() {
+    return BindingBuilder.bind(repliesQueue()).to(fanoutExchange());
   }
+
+
 }
