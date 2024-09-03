@@ -32,12 +32,12 @@ public class RabbitConfig {
   /** 请求队列和交换器绑定 */
   @Bean
   Binding requestBinding() {
-    return BindingBuilder.bind(requestQueue()).to(exchange()).with(Constant.ROUTING_KEY);
+    return BindingBuilder.bind(requestQueue()).to(exchange()).with(Constant.REQUEST_QUEUE_NAME);
   }
 
   /** 返回队列和交换器绑定 */
   @Bean
   Binding repliesBinding() {
-    return BindingBuilder.bind(repliesQueue()).to(exchange()).with(Constant.ROUTING_KEY);
+    return BindingBuilder.bind(repliesQueue()).to(exchange()).with(Constant.REPLIES_QUEUE_NAME);
   }
 }
