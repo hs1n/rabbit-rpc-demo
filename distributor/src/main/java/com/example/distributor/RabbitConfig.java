@@ -10,16 +10,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
 
-  /** 设置消息发送RPC队列 */
   @Bean
   Queue requestQueue() {
     return new Queue(Constant.REQUEST_QUEUE_NAME);
-  }
-
-  /** 设置返回队列 */
-  @Bean
-  Queue repliesQueue() {
-    return new Queue(Constant.REPLIES_QUEUE_NAME);
   }
 
   /** 设置交换机 */
@@ -29,20 +22,9 @@ public class RabbitConfig {
   }
 
   @Bean
-  FanoutExchange fanoutExchange() {
-    return new FanoutExchange(Constant.FAN_OUT_EXCHANGE);
-  }
-
-  /** 请求队列和交换器绑定 */
-  @Bean
   Binding requestBinding() {
-    return BindingBuilder.bind(requestQueue()).to(exchange()).with(Constant.REQUEST_QUEUE_NAME);
-  }
 
-  /** 返回队列和交换器绑定 */
-  @Bean
-  Binding repliesBinding() {
-    return BindingBuilder.bind(repliesQueue()).to(fanoutExchange());
+    return BindingBuilder.bind(requestQueue()).to(exchange()).with(requestQueue().getName());
   }
 
   @Bean

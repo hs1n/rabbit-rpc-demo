@@ -12,49 +12,45 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
 
-  /** 设置消息发送RPC队列 */
   @Bean
   Queue requestQueue() {
     return new Queue(Constant.REQUEST_QUEUE_NAME);
   }
 
-  /** 设置返回队列 */
-  @Bean
+  /**
+   * Create temporary queue for receive response
+   *
+   * @return temp {@link Queue}
+   */
+  @Bean("repliesQueue")
   Queue repliesQueue() {
-    return new Queue(Constant.REPLIES_QUEUE_NAME);
+    return new AnonymousQueue();
   }
 
-  /** 设置交换机 */
   @Bean
   DirectExchange exchange() {
     return new DirectExchange(Constant.EXCHANGE_NAME);
   }
 
   @Bean
-  FanoutExchange fanoutExchange() {
-    return new FanoutExchange(Constant.FAN_OUT_EXCHANGE);
-  }
-
-  /** 请求队列和交换器绑定 */
-  @Bean
   Binding requestBinding() {
-    return BindingBuilder.bind(requestQueue()).to(exchange()).with(Constant.REQUEST_QUEUE_NAME);
+    return BindingBuilder.bind(requestQueue()).to(exchange()).with(requestQueue().getName());
   }
 
-  /** 返回队列和交换器绑定 */
   @Bean
   Binding repliesBinding() {
-    return BindingBuilder.bind(repliesQueue()).to(fanoutExchange());
+    return BindingBuilder.bind(repliesQueue()).to(exchange()).with(repliesQueue().getName());
   }
 
   /** 使用 RabbitTemplate发送和接收消息 并设置回调队列地址 */
   @Bean
   RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
     RabbitTemplate template = new RabbitTemplate(connectionFactory);
+    template.setReplyTimeout(3000L);
     template.setExchange(exchange().getName());
     template.setReplyAddress(repliesQueue().getName());
-    template.setReplyTimeout(6000L);
     template.setUserCorrelationId(true);
+    template.setUseDirectReplyToContainer(true);
     return template;
   }
 
