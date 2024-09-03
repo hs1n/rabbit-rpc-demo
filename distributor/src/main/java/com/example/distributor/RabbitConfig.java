@@ -2,6 +2,8 @@ package com.example.distributor;
 
 import com.example.Constant;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -39,9 +41,14 @@ public class RabbitConfig {
 
   /** 返回队列和交换器绑定 */
   @Bean
-Binding repliesBinding() {
+  Binding repliesBinding() {
     return BindingBuilder.bind(repliesQueue()).to(fanoutExchange());
   }
 
-
+  @Bean
+  RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+    RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+    rabbitTemplate.setUserCorrelationId(true);
+    return rabbitTemplate;
+  }
 }

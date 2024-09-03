@@ -54,6 +54,7 @@ public class RabbitConfig {
     template.setExchange(exchange().getName());
     template.setReplyAddress(repliesQueue().getName());
     template.setReplyTimeout(6000L);
+    template.setUserCorrelationId(true);
     return template;
   }
 
