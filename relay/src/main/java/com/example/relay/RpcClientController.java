@@ -31,12 +31,7 @@ public class RpcClientController {
   @GetMapping("/send")
   public String send(String message) {
     // 创建消息对象
-    MessageProperties messageProperties = new MessageProperties();
-    messageProperties.setExpiration("1000");
-    messageProperties.setReplyTo(Constant.REPLIES_QUEUE_NAME);
-    String correctionId = UUID.randomUUID().toString();
-    messageProperties.setCorrelationId(correctionId);
-    Message newMessage = new Message(message.getBytes(StandardCharsets.UTF_8), messageProperties);
+    Message newMessage = getMessage(message);
 
     log.info("client send：{}", newMessage);
 
@@ -44,12 +39,11 @@ public class RpcClientController {
 
     Message received =
         rabbitTemplate.sendAndReceive(
-            Constant.EXCHANGE_NAME, Constant.REQUEST_QUEUE_NAME, newMessage, new CorrelationData(correctionId));
+            Constant.EXCHANGE_NAME, Constant.REQUEST_QUEUE_NAME, newMessage);
 
     String response = "";
 
     if (received != null) {
-      log.info(newMessage.toString());
       // 获取已发送的消息的 correlationId
       String correlationId = newMessage.getMessageProperties().getCorrelationId();
       log.info("correlationId:{}", correlationId);
@@ -68,5 +62,15 @@ public class RpcClientController {
     }
 
     return response;
+  }
+
+  private static Message getMessage(String message) {
+    MessageProperties messageProperties = new MessageProperties();
+    messageProperties.setExpiration("1000");
+    messageProperties.setReplyTo(Constant.REPLIES_QUEUE_NAME);
+    String correctionId = UUID.randomUUID().toString();
+    messageProperties.setCorrelationId(correctionId);
+    Message newMessage = new Message(message.getBytes(StandardCharsets.UTF_8), messageProperties);
+    return newMessage;
   }
 }
