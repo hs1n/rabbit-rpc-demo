@@ -45,7 +45,6 @@ public class RpcClientController {
     String queryString = request.getQueryString();
     log.info(queryString);
 
-    // 创建消息对象
     String correlationId = UUID.randomUUID().toString();
 
     Message requestMessage =
@@ -53,8 +52,6 @@ public class RpcClientController {
             correlationId, new SerializableHttpRequestWrapper(request, headers, requestBody));
 
     log.info("client send：{}", requestMessage);
-
-    // 客户端发送消息
 
     Message responseMessage =
         rabbitTemplate.sendAndReceive(
