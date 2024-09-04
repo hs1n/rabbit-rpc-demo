@@ -24,7 +24,7 @@ public class RabbitConfig {
    */
   @Bean("repliesQueue")
   Queue repliesQueue() {
-    return new AnonymousQueue();
+    return new AnonymousQueue(new Base64UrlNamingStrategy("relay-"));
   }
 
   @Bean
@@ -65,7 +65,6 @@ public class RabbitConfig {
     SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
     container.setConnectionFactory(connectionFactory);
     container.setQueueNames(repliesQueue().getName());
-    container.setPrefetchCount(10);
     container.setMessageListener(rabbitTemplate(connectionFactory));
     return container;
   }

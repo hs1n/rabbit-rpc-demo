@@ -1,6 +1,7 @@
 package com.example.distributor;
 
 import com.example.Constant;
+import com.example.SerializableHttpRequestWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
@@ -37,7 +38,11 @@ public class RpcServerListener {
   }
 
   private byte[] buildResponse(byte[] msg) {
-    return SerializationUtils.serialize("i'm receive:" + SerializationUtils.deserialize(msg));
+    if (SerializationUtils.deserialize(msg) instanceof SerializableHttpRequestWrapper wrapper) {
+      return SerializationUtils.serialize(wrapper);
+    } else {
+      return new byte[0];
+    }
   }
 
   private MessageProperties getMessageProperties(String correlationId, String replyTo) {

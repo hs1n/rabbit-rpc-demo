@@ -1,6 +1,9 @@
 package com.example.relay;
 
 import com.example.Constant;
+import com.example.SerializableHttpRequestWrapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -9,8 +12,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Slf4j
@@ -25,11 +29,28 @@ public class RpcClientController {
     this.environment = environment;
   }
 
-  @GetMapping("/send")
-  public Object send(String message) {
+  @RequestMapping(
+      value = "/**",
+      method = {RequestMethod.GET, RequestMethod.POST},
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
+  public Object rpc(
+      @RequestHeader HttpHeaders headers,
+      HttpServletRequest request,
+      HttpServletResponse response,
+      @RequestBody String requestBody) {
+
+    String requestURI = request.getRequestURI();
+    log.info(requestURI);
+    String queryString = request.getQueryString();
+    log.info(queryString);
+
     // 创建消息对象
     String correlationId = UUID.randomUUID().toString();
-    Message requestMessage = buildMessage(correlationId, message);
+
+    Message requestMessage =
+        buildMessage(
+            correlationId, new SerializableHttpRequestWrapper(request, headers, requestBody));
 
     log.info("client send：{}", requestMessage);
 
@@ -39,27 +60,32 @@ public class RpcClientController {
         rabbitTemplate.sendAndReceive(
             Constant.EXCHANGE_NAME, Constant.REQUEST_QUEUE_NAME, requestMessage);
 
-    log.info("client response: {}", responseMessage);
+    log.debug("client response: {}", responseMessage);
 
-    Object response = "";
+    Object responseBody = "";
 
     if (responseMessage != null) {
       String responseCorrelationId = responseMessage.getMessageProperties().getCorrelationId();
       if (correlationId.equals(responseCorrelationId)) {
-        response = SerializationUtils.deserialize(responseMessage.getBody());
+        responseBody = SerializationUtils.deserialize(responseMessage.getBody());
       }
+    } else {
+      log.warn("response is null on id:{}", correlationId);
     }
 
-    return response;
+    return responseBody;
   }
 
-  private Message buildMessage(String correlationId, String message) {
+  private Message buildMessage(
+      String correlationId, SerializableHttpRequestWrapper requestWrapper) {
     MessageProperties messageProperties = new MessageProperties();
+
     messageProperties.setCorrelationId(correlationId);
     messageProperties.setExpiration(
         environment.getProperty(
             Constant.RABBIT_CUSTOM_MESSAGE_EXPIRATION_KEY,
             Constant.MESSAGE_DEFAULT_EXPIRATION_MILLIS));
-    return new Message(SerializationUtils.serialize(message), messageProperties);
+
+    return new Message(SerializationUtils.serialize(requestWrapper), messageProperties);
   }
 }
