@@ -2,6 +2,8 @@ server:
   port: 9091
 
 spring:
+  application:
+    name: distributor-${random.uuid}
   rabbitmq:
     host: localhost
     port: 5672
