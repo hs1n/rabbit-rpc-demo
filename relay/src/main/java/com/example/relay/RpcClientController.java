@@ -40,11 +40,6 @@ public class RpcClientController {
       HttpServletResponse response,
       @RequestBody String requestBody) {
 
-    String requestURI = request.getRequestURI();
-    log.info(requestURI);
-    String queryString = request.getQueryString();
-    log.info(queryString);
-
     String correlationId = UUID.randomUUID().toString();
 
     Message requestMessage =
