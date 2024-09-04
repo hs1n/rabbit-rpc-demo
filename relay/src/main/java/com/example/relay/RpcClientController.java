@@ -5,10 +5,10 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,17 +17,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class RpcClientController {
 
   private final RabbitTemplate rabbitTemplate;
+  private final Environment environment;
 
   @Autowired
-  public RpcClientController(RabbitTemplate rabbitTemplate) {
+  public RpcClientController(RabbitTemplate rabbitTemplate, Environment environment) {
     this.rabbitTemplate = rabbitTemplate;
+    this.environment = environment;
   }
 
   @GetMapping("/send")
   public Object send(String message) {
     // 创建消息对象
-    Message requestMessage = getMessage(message);
-    String correlationId = requestMessage.getMessageProperties().getCorrelationId();
+    String correlationId = UUID.randomUUID().toString();
+    Message requestMessage = buildMessage(correlationId, message);
 
     log.info("client send：{}", requestMessage);
 
@@ -35,10 +37,7 @@ public class RpcClientController {
 
     Message responseMessage =
         rabbitTemplate.sendAndReceive(
-            Constant.EXCHANGE_NAME,
-            Constant.REQUEST_QUEUE_NAME,
-            requestMessage,
-            new CorrelationData(correlationId));
+            Constant.EXCHANGE_NAME, Constant.REQUEST_QUEUE_NAME, requestMessage);
 
     log.info("client response: {}", responseMessage);
 
@@ -54,11 +53,13 @@ public class RpcClientController {
     return response;
   }
 
-  private Message getMessage(String message) {
+  private Message buildMessage(String correlationId, String message) {
     MessageProperties messageProperties = new MessageProperties();
-    messageProperties.setExpiration("1000");
-    String correctionId = UUID.randomUUID().toString();
-    messageProperties.setCorrelationId(correctionId);
+    messageProperties.setCorrelationId(correlationId);
+    messageProperties.setExpiration(
+        environment.getProperty(
+            Constant.RABBIT_CUSTOM_MESSAGE_EXPIRATION_KEY,
+            Constant.MESSAGE_DEFAULT_EXPIRATION_MILLIS));
     return new Message(SerializationUtils.serialize(message), messageProperties);
   }
 }

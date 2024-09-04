@@ -46,7 +46,7 @@ public class RabbitConfig {
   @Bean
   RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
     RabbitTemplate template = new RabbitTemplate(connectionFactory);
-    template.setReplyTimeout(3000L);
+    template.setReplyTimeout(30000L);
     template.setExchange(exchange().getName());
     template.setReplyAddress(repliesQueue().getName());
     template.setUserCorrelationId(true);
