@@ -2,6 +2,7 @@ package com.example.distributor;
 
 import com.example.Constant;
 import com.example.SerializableHttpRequestWrapper;
+import io.micrometer.core.annotation.Timed;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
@@ -25,9 +26,9 @@ public class RpcServerListener {
     this.environment = environment;
   }
 
-  @RabbitListener(queues = Constant.REQUEST_QUEUE_NAME)
+  @RabbitListener(queues = Constant.REQUEST_QUEUE_NAME, concurrency = "1-10")
   public void process(Message message) {
-    log.info("server receives : {}", message.toString());
+    log.debug("server receives : {}", message.toString());
     String correlationId = message.getMessageProperties().getCorrelationId();
     String replyTo = message.getMessageProperties().getReplyTo();
 
@@ -37,6 +38,9 @@ public class RpcServerListener {
     rabbitTemplate.send(Constant.EXCHANGE_NAME, replyTo, responseMessage);
   }
 
+  @Timed(
+      value = "distributor.serialization",
+      description = "message deserialization and deserialization")
   private byte[] buildResponse(byte[] msg) {
     if (SerializationUtils.deserialize(msg) instanceof SerializableHttpRequestWrapper wrapper) {
       return SerializationUtils.serialize(wrapper);

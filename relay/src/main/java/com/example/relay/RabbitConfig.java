@@ -2,7 +2,7 @@ package com.example.relay;
 
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.connection.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +10,17 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitConfig {
+
+  @Bean
+  public ConnectionFactory rabbitConnectionFactory(ConnectionNameStrategy cns) {
+    CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
+    connectionFactory.setConnectionNameStrategy(cns);
+
+    // 影響 relay 的 throughput
+    connectionFactory.setChannelCacheSize(25);
+    return connectionFactory;
+  }
+
   /**
    * Create temporary queue for receive response
    *

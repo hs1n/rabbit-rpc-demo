@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -34,7 +35,7 @@ public class RpcClientController {
       method = {RequestMethod.GET, RequestMethod.POST},
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
-  public Object rpc(
+  public ResponseEntity<Object> rpc(
       @RequestHeader HttpHeaders headers,
       HttpServletRequest request,
       HttpServletResponse response,
@@ -46,7 +47,7 @@ public class RpcClientController {
         buildMessage(
             correlationId, new SerializableHttpRequestWrapper(request, headers, requestBody));
 
-    log.info("client send：{}", requestMessage);
+    log.debug("client send: {} (before template)", requestMessage);
 
     Message responseMessage =
         rabbitTemplate.sendAndReceive(
@@ -54,18 +55,19 @@ public class RpcClientController {
 
     log.debug("client response: {}", responseMessage);
 
-    Object responseBody = "";
 
     if (responseMessage != null) {
       String responseCorrelationId = responseMessage.getMessageProperties().getCorrelationId();
       if (correlationId.equals(responseCorrelationId)) {
-        responseBody = SerializationUtils.deserialize(responseMessage.getBody());
+        return ResponseEntity.ok(SerializationUtils.deserialize(responseMessage.getBody()));
+      } else {
+        return ResponseEntity.notFound().build();
       }
     } else {
-      log.warn("response is null on id:{}", correlationId);
+      log.warn("response is null on id: {}", correlationId);
     }
 
-    return responseBody;
+    return ResponseEntity.internalServerError().build();
   }
 
   private Message buildMessage(

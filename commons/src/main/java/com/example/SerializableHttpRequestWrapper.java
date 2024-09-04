@@ -5,7 +5,6 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
-
 import lombok.Data;
 import org.springframework.http.HttpHeaders;
 
@@ -17,6 +16,8 @@ public class SerializableHttpRequestWrapper implements Serializable {
   private String querystring;
   private Map<String, Object> headers;
   private String payload;
+
+
 
   public SerializableHttpRequestWrapper(HttpServletRequest request, HttpHeaders headers, String payload) {
     this.method = request.getMethod();
