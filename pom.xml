@@ -9,10 +9,10 @@
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>com.example</groupId>
-  <artifactId>hybrid</artifactId>
+  <artifactId>rabbit-rpc-demo</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>hybrid</name>
+  <name>rabbit-rpc-demo</name>
   <description>Demo project for Spring Boot</description>
   <url/>
   <licenses>
