@@ -1,16 +1,17 @@
 package com.example.distributor;
 
 import com.example.Constant;
-import com.example.SerializableHttpRequestWrapper;
 import io.micrometer.core.annotation.Timed;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.fury.ThreadSafeFury;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.utils.SerializationUtils;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,16 +20,21 @@ public class RpcServerListener {
 
   private final RabbitTemplate rabbitTemplate;
   private final Environment environment;
+  private final ThreadSafeFury threadSafeFury;
 
   @Autowired
-  public RpcServerListener(RabbitTemplate rabbitTemplate, Environment environment) {
+  public RpcServerListener(
+      RabbitTemplate rabbitTemplate, Environment environment, ThreadSafeFury threadSafeFury) {
     this.rabbitTemplate = rabbitTemplate;
     this.environment = environment;
+    this.threadSafeFury = threadSafeFury;
   }
 
-  @RabbitListener(queues = Constant.REQUEST_QUEUE_NAME, concurrency = "1-10")
-  public void process(Message message) {
-    log.debug("server receives : {}", message.toString());
+  @RabbitListener(
+      queues = {Constant.REQUEST_QUEUE_NAME},
+      concurrency = "1-100")
+  public void process(Message message, @Header(AmqpHeaders.CONSUMER_QUEUE) String queue) {
+    log.debug("server receives : {} on {}", message.toString(), queue);
     String correlationId = message.getMessageProperties().getCorrelationId();
     String replyTo = message.getMessageProperties().getReplyTo();
 
@@ -42,11 +48,12 @@ public class RpcServerListener {
       value = "distributor.serialization",
       description = "message deserialization and deserialization")
   private byte[] buildResponse(byte[] msg) {
-    if (SerializationUtils.deserialize(msg) instanceof SerializableHttpRequestWrapper wrapper) {
-      return SerializationUtils.serialize(wrapper);
-    } else {
-      return new byte[0];
-    }
+    //    if (threadSafeFury.deserialize(msg) instanceof SerializableHttpRequestWrapper wrapper) {
+    //      return threadSafeFury.serialize(wrapper);
+    //    } else {
+    //      return new byte[0];
+    //    }
+    return msg;
   }
 
   private MessageProperties getMessageProperties(String correlationId, String replyTo) {

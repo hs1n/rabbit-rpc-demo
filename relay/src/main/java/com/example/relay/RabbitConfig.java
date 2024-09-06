@@ -17,7 +17,7 @@ public class RabbitConfig {
     connectionFactory.setConnectionNameStrategy(cns);
 
     // 影響 relay 的 throughput
-    connectionFactory.setChannelCacheSize(25);
+    connectionFactory.setChannelCacheSize(50);
     return connectionFactory;
   }
 

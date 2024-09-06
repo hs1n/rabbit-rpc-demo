@@ -14,6 +14,7 @@ public class RabbitConfig {
   public ConnectionFactory rabbitConnectionFactory(ConnectionNameStrategy cns) {
     CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
     connectionFactory.setConnectionNameStrategy(cns);
+    connectionFactory.setChannelCacheSize(200);
     return connectionFactory;
   }
 

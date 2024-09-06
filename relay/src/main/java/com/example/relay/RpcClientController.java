@@ -6,10 +6,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.fury.ThreadSafeFury;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
@@ -23,11 +23,14 @@ public class RpcClientController {
 
   private final RabbitTemplate rabbitTemplate;
   private final Environment environment;
+  private final ThreadSafeFury threadSafeFury;
 
   @Autowired
-  public RpcClientController(RabbitTemplate rabbitTemplate, Environment environment) {
+  public RpcClientController(
+      RabbitTemplate rabbitTemplate, Environment environment, ThreadSafeFury threadSafeFury) {
     this.rabbitTemplate = rabbitTemplate;
     this.environment = environment;
+    this.threadSafeFury = threadSafeFury;
   }
 
   @RequestMapping(
@@ -50,16 +53,14 @@ public class RpcClientController {
     log.debug("client send: {} (before template)", requestMessage);
 
     Message responseMessage =
-        rabbitTemplate.sendAndReceive(
-            Constant.EXCHANGE_NAME, Constant.REQUEST_QUEUE_NAME, requestMessage);
+        rabbitTemplate.sendAndReceive(Constant.EXCHANGE_NAME, Constant.ROUTING_KEY, requestMessage);
 
     log.debug("client response: {}", responseMessage);
-
 
     if (responseMessage != null) {
       String responseCorrelationId = responseMessage.getMessageProperties().getCorrelationId();
       if (correlationId.equals(responseCorrelationId)) {
-        return ResponseEntity.ok(SerializationUtils.deserialize(responseMessage.getBody()));
+        return ResponseEntity.ok(threadSafeFury.deserialize(responseMessage.getBody()));
       } else {
         return ResponseEntity.notFound().build();
       }
@@ -80,6 +81,6 @@ public class RpcClientController {
             Constant.RABBIT_CUSTOM_MESSAGE_EXPIRATION_KEY,
             Constant.MESSAGE_DEFAULT_EXPIRATION_MILLIS));
 
-    return new Message(SerializationUtils.serialize(requestWrapper), messageProperties);
+    return new Message(threadSafeFury.serialize(requestWrapper), messageProperties);
   }
 }
