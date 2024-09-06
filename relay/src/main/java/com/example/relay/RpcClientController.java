@@ -39,7 +39,7 @@ public class RpcClientController {
       @RequestHeader HttpHeaders headers,
       HttpServletRequest request,
       HttpServletResponse response,
-      @RequestBody String requestBody) {
+      @RequestBody(required = false) String requestBody) {
 
     String correlationId = UUID.randomUUID().toString();
 
