@@ -3,7 +3,6 @@ package com.example;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Map;
 import lombok.Data;
 import org.springframework.http.HttpHeaders;
@@ -14,7 +13,7 @@ public class SerializableHttpRequestWrapper implements Serializable {
   private String method;
   private String uri;
   private String querystring;
-  private Map<String, Object> headers;
+  private Map<String, String> headers;
   private String payload;
 
 
@@ -23,7 +22,7 @@ public class SerializableHttpRequestWrapper implements Serializable {
     this.method = request.getMethod();
     this.uri = request.getRequestURI();
     this.querystring = request.getQueryString();
-    this.headers = Collections.unmodifiableMap(headers);
+    this.headers = headers.toSingleValueMap();
     this.payload = payload;
   }
 }
