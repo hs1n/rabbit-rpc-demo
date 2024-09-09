@@ -36,7 +36,6 @@ public class RabbitConfig {
     return BindingBuilder.bind(repliesQueue()).to(exchange).with(repliesQueue().getName());
   }
 
-  /** 使用 RabbitTemplate发送和接收消息 并设置回调队列地址 */
   @Bean
   RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, DirectExchange exchange) {
     RabbitTemplate template = new RabbitTemplate(connectionFactory);
@@ -54,7 +53,6 @@ public class RabbitConfig {
     return new AsyncRabbitTemplate(rabbitTemplate(connectionFactory, exchange));
   }
 
-  /** 给返回队列设置监听器 */
   @Bean
   SimpleMessageListenerContainer replyContainer(
       ConnectionFactory connectionFactory, DirectExchange exchange) {
