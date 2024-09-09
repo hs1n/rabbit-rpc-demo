@@ -1,6 +1,7 @@
 package com.example.relay;
 
 import com.example.Constant;
+import com.example.MessageUtils;
 import com.example.SerializableHttpRequestWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -74,14 +75,16 @@ public class RpcClientController {
 
   private Message buildMessage(
       String correlationId, SerializableHttpRequestWrapper requestWrapper) {
-    MessageProperties messageProperties = new MessageProperties();
-
-    messageProperties.setCorrelationId(correlationId);
-    messageProperties.setExpiration(
+    String expiration =
         environment.getProperty(
             Constant.RABBIT_CUSTOM_MESSAGE_EXPIRATION_KEY,
-            Constant.MESSAGE_DEFAULT_EXPIRATION_MILLIS));
+            Constant.MESSAGE_DEFAULT_EXPIRATION_MILLIS);
+
+    MessageProperties messageProperties =
+        MessageUtils.getMessageProperties(correlationId, expiration);
 
     return new Message(threadSafeFury.serialize(requestWrapper), messageProperties);
   }
+
+
 }
