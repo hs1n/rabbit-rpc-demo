@@ -33,7 +33,8 @@ public class RabbitConfig {
 
   @Bean
   Binding repliesBinding(DirectExchange exchange) {
-    return BindingBuilder.bind(repliesQueue()).to(exchange).with(repliesQueue().getName());
+    // Use queue name for routing
+    return BindingBuilder.bind(repliesQueue()).to(exchange).withQueueName();
   }
 
   @Bean

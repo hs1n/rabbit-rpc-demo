@@ -46,6 +46,8 @@ public class CommonRabbitConfiguration {
 
   @Bean
   Binding requestBinding() {
-    return BindingBuilder.bind(requestQueue()).to(exchange()).with(requestQueue().getName());
+    return BindingBuilder.bind(requestQueue())
+        .to(exchange())
+        .with(Constant.REQUEST_QUEUE_ROUTING_KEY);
   }
 }

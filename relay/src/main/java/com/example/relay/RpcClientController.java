@@ -53,7 +53,8 @@ public class RpcClientController {
     log.debug("client send: {} (before template)", requestMessage);
 
     Message responseMessage =
-        rabbitTemplate.sendAndReceive(Constant.EXCHANGE_NAME, Constant.ROUTING_KEY, requestMessage);
+        rabbitTemplate.sendAndReceive(
+            Constant.EXCHANGE_NAME, Constant.REQUEST_QUEUE_ROUTING_KEY, requestMessage);
 
     log.debug("client response: {}", responseMessage);
 
