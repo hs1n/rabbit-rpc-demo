@@ -21,7 +21,6 @@
     <dependency>
       <groupId>com.example</groupId>
       <artifactId>commons</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
     </dependency>
 
     <!-- Required for Function primitives -->
@@ -64,21 +63,11 @@
         <configuration>
           <functionTarget>com.example.relay.function.RelayFunction</functionTarget>
         </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.2.4</version>
-        <configuration>
-          <artifactSet>
-          </artifactSet>
-        </configuration>
         <executions>
           <execution>
-            <phase>package</phase>
+            <phase>install</phase>
             <goals>
-              <goal>shade</goal>
+              <goal>run</goal>
             </goals>
           </execution>
         </executions>

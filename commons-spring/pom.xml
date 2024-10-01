@@ -47,7 +47,6 @@
     <dependency>
       <groupId>com.example</groupId>
       <artifactId>commons</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
