@@ -1,4 +1,4 @@
-package com.example;
+package com.example.commons;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;

@@ -9,7 +9,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>relay</artifactId>
+  <artifactId>commons-spring</artifactId>
 
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
@@ -18,16 +18,6 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>com.example</groupId>
-      <artifactId>commons</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>com.example</groupId>
-      <artifactId>commons-spring</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -54,14 +44,12 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>commons</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
 </project>

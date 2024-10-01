@@ -1,4 +1,4 @@
-package com.example;
+package com.example.constant;
 
 public class Constant {
   public static final String EXCHANGE_NAME = "rpc";

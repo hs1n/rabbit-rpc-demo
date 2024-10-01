@@ -1,11 +1,7 @@
 package com.example.commons;
 
-import com.example.Constant;
-import com.example.SerializableHttpRequestWrapper;
-import org.apache.fury.Fury;
-import org.apache.fury.ThreadSafeFury;
-import org.apache.fury.config.Language;
-import org.apache.fury.logging.LoggerFactory;
+import com.example.constant.Constant;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
@@ -14,24 +10,13 @@ import org.springframework.amqp.rabbit.connection.SimplePropertyValueConnectionN
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+@Slf4j
 @Configuration
 public class CommonRabbitConfiguration {
 
   @Bean
   public SimplePropertyValueConnectionNameStrategy cns() {
     return new SimplePropertyValueConnectionNameStrategy("spring.application.name");
-  }
-
-  @Bean
-  public ThreadSafeFury threadSafeFury() {
-    LoggerFactory.useSlf4jLogging(true);
-    ThreadSafeFury fury =
-        Fury.builder()
-            .withLanguage(Language.JAVA)
-            .requireClassRegistration(true)
-            .buildThreadSafeFury();
-    fury.register(SerializableHttpRequestWrapper.class);
-    return fury;
   }
 
   @Bean

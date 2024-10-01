@@ -1,10 +1,9 @@
 package com.example.distributor;
 
-import com.example.Constant;
-import com.example.MessageUtils;
+import com.example.commons.MessageUtils;
+import com.example.constant.Constant;
 import io.micrometer.core.annotation.Timed;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.fury.ThreadSafeFury;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -20,14 +19,11 @@ public class RpcServerListener {
 
   private final RabbitTemplate rabbitTemplate;
   private final Environment environment;
-  private final ThreadSafeFury threadSafeFury;
 
   @Autowired
-  public RpcServerListener(
-      RabbitTemplate rabbitTemplate, Environment environment, ThreadSafeFury threadSafeFury) {
+  public RpcServerListener(RabbitTemplate rabbitTemplate, Environment environment) {
     this.rabbitTemplate = rabbitTemplate;
     this.environment = environment;
-    this.threadSafeFury = threadSafeFury;
   }
 
   @RabbitListener(
@@ -56,11 +52,6 @@ public class RpcServerListener {
       value = "distributor.serialization",
       description = "message deserialization and deserialization")
   private byte[] buildResponse(byte[] msg) {
-    //    if (threadSafeFury.deserialize(msg) instanceof SerializableHttpRequestWrapper wrapper) {
-    //      return threadSafeFury.serialize(wrapper);
-    //    } else {
-    //      return new byte[0];
-    //    }
     return msg;
   }
 }

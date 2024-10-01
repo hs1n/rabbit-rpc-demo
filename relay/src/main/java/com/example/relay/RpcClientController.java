@@ -1,13 +1,13 @@
 package com.example.relay;
 
-import com.example.Constant;
-import com.example.MessageUtils;
-import com.example.SerializableHttpRequestWrapper;
+import com.example.commons.MessageUtils;
+import com.example.constant.Constant;
+import com.example.entity.SerializableHttpRequestWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.UUID;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.fury.ThreadSafeFury;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -24,14 +24,11 @@ public class RpcClientController {
 
   private final RabbitTemplate rabbitTemplate;
   private final Environment environment;
-  private final ThreadSafeFury threadSafeFury;
 
   @Autowired
-  public RpcClientController(
-      RabbitTemplate rabbitTemplate, Environment environment, ThreadSafeFury threadSafeFury) {
+  public RpcClientController(RabbitTemplate rabbitTemplate, Environment environment) {
     this.rabbitTemplate = rabbitTemplate;
     this.environment = environment;
-    this.threadSafeFury = threadSafeFury;
   }
 
   @RequestMapping(
@@ -48,8 +45,7 @@ public class RpcClientController {
     String correlationId = UUID.randomUUID().toString();
 
     Message requestMessage =
-        buildMessage(
-            correlationId, new SerializableHttpRequestWrapper(request, headers, requestBody));
+        buildMessage(correlationId, fromSpringBoot(request, headers, requestBody));
 
     log.debug("client send: {} (before template)", requestMessage);
 
@@ -62,7 +58,7 @@ public class RpcClientController {
     if (responseMessage != null) {
       String responseCorrelationId = responseMessage.getMessageProperties().getCorrelationId();
       if (correlationId.equals(responseCorrelationId)) {
-        return ResponseEntity.ok(threadSafeFury.deserialize(responseMessage.getBody()));
+        return ResponseEntity.ok(SerializationUtils.deserialize(responseMessage.getBody()));
       } else {
         return ResponseEntity.notFound().build();
       }
@@ -83,8 +79,17 @@ public class RpcClientController {
     MessageProperties messageProperties =
         MessageUtils.getMessageProperties(correlationId, expiration);
 
-    return new Message(threadSafeFury.serialize(requestWrapper), messageProperties);
+    return new Message(SerializationUtils.serialize(requestWrapper), messageProperties);
   }
 
-
+  private SerializableHttpRequestWrapper fromSpringBoot(
+      HttpServletRequest request, HttpHeaders headers, String payload) {
+    SerializableHttpRequestWrapper wrapper = new SerializableHttpRequestWrapper();
+    wrapper.setMethod(request.getMethod());
+    wrapper.setUri(request.getRequestURI());
+    wrapper.setQuerystring(request.getQueryString());
+    wrapper.setHeaders(new HashMap<>(headers));
+    wrapper.setPayload(payload);
+    return wrapper;
+  }
 }
